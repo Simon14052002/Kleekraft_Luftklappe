@@ -1,4 +1,4 @@
-const CACHE_NAME = 'klappen-app-v1';
+const CACHE_NAME = 'klappen-app-v2'; // <--- Hier wurde auf v2 erhöht!
 const urlsToCache = [
   './',
   './index.html',
@@ -10,6 +10,23 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => cache.addAll(urlsToCache))
+  );
+  // Zwingt den Browser, den neuen Service Worker sofort zu übernehmen
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', event => {
+  // Löscht den alten Cache (v1), damit das Smartphone die neuen Dateien lädt
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cache => {
+          if (cache !== CACHE_NAME) {
+            return caches.delete(cache);
+          }
+        })
+      );
+    })
   );
 });
 
