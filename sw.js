@@ -1,4 +1,4 @@
-const CACHE_NAME = 'klappen-app-v2'; // <--- Hier wurde auf v2 erhöht!
+const CACHE_NAME = 'klappen-app-v3'; // Jetzt auf v3!
 const urlsToCache = [
   './',
   './index.html',
