@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Luftklappen Rechner</title>
+    <!-- Verknüpfung zur PWA Manifest-Datei -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0056b3">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #0056b3; margin-top: 0; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
+        .btn-calc { background-color: #0056b3; color: white; }
+        .btn-save { background-color: #28a745; color: white; margin-bottom: 20px; }
+        .result-box { background-color: #e9ecef; padding: 15px; border-radius: 6px; text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8em; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #0056b3; color: white; }
+        .table-container { overflow-x: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Luftklappen Optimierung</h2>
+    
+    <div class="input-group">
+        <label>Innen-Temperatur (°C)</label>
+        <input type="number" id="inT" value="29" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>Innen-Feuchtigkeit (%)</label>
+        <input type="number" id="inF" value="55" step="1">
+    </div>
+    <div class="input-group">
+        <label>Außen-Temperatur (°C)</label>
+        <input type="number" id="outT" value="17" step="0.1">
+    </div>
+    <div class="input-group">
+        <label>Außen-Feuchtigkeit (%)</label>
+        <input type="number" id="outF" value="15" step="1">
+    </div>
+
+    <button class="btn-calc" onclick="berechneOptimum()">Optimum Berechnen</button>
+
+    <div class="result-box" id="resultDisplay">
+        Optimal: Berechne...
+    </div>
+
+    <div class="input-group">
+        <label>Tatsächlich eingestellte Klappe (%)</label>
+        <input type="number" id="actualVal" placeholder="z.B. 35">
+    </div>
+
+    <button class="btn-save" onclick="speichereDaten()">Datensatz Speichern</button>
+
+    <h3>Historie</h3>
+    <div class="table-container">
+        <table id="historyTable">
+            <thead>
+                <tr>
+                    <th>T_in</th>
+                    <th>F_in</th>
+                    <th>T_out</th>
+                    <th>F_out</th>
+                    <th>Opt.</th>
+                    <th>Ist</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Daten werden hier eingefügt -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

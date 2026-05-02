@@ -1,0 +1,15 @@
+{
+  "name": "Luftklappen Optimierung",
+  "short_name": "KlappenApp",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f4f7f6",
+  "theme_color": "#0056b3",
+  "icons": [
+    {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Gnome-settings-default-applications.svg/192px-Gnome-settings-default-applications.svg.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
