@@ -109,3 +109,52 @@ window.onload = () => {
     starteDatenSync(); 
     berechneOptimum();
 };
+
+// --- NEU: DATEN ALS CSV HERUNTERLADEN ---
+async function exportiereCSV() {
+    try {
+        // 1. Alle Daten aus Firebase holen (sortiert nach Datum)
+        const snapshot = await db.collection("historie").orderBy("timestamp", "desc").get();
+        
+        // 2. Die Kopfzeile der Excel-Tabelle erstellen (Semikolon für deutsches Excel)
+        let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Opt. Klappe (%);Ist-Klappe (%)\n";
+
+        // 3. Jede Zeile aus der Datenbank durchgehen
+        snapshot.forEach((doc) => {
+            let row = doc.data();
+            
+            let datumStr = "";
+            let zeitStr = "";
+            
+            // Zeitstempel in ein lesbares Format umwandeln (z.B. für Österreich 'de-AT')
+            if (row.timestamp) {
+                let dateObj = row.timestamp.toDate();
+                datumStr = dateObj.toLocaleDateString('de-AT'); // z.B. 03.05.2026
+                zeitStr = dateObj.toLocaleTimeString('de-AT');  // z.B. 14:30:00
+            }
+
+            // Die Zeile zusammenbauen (Werte mit Semikolon trennen)
+            csvContent += `${datumStr};${zeitStr};${row.inT};${row.inF};${row.outT};${row.outF};${row.opt};${row.ist}\n`;
+        });
+
+        // 4. Einen unsichtbaren Download-Link erstellen und klicken
+        // UTF-8 BOM (\uFEFF) hinzufügen, damit Excel Umlaute und Sonderzeichen (wie °C) richtig anzeigt
+        const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        
+        link.setAttribute("href", url);
+        link.setAttribute("download", "Luftklappen_Historie.csv"); // Name der Datei
+        document.body.appendChild(link);
+        
+        // Download auslösen
+        link.click();
+        
+        // Aufräumen
+        document.body.removeChild(link);
+
+    } catch (error) {
+        console.error("Fehler beim Exportieren: ", error);
+        alert("Fehler beim Erstellen der CSV-Datei.");
+    }
+}

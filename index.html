@@ -66,7 +66,12 @@
 
     <button class="btn-save" onclick="speichereDaten()">Datensatz Speichern</button>
 
-    <h3>Historie</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+        <h3 style="margin: 0;">Historie</h3>
+        <button onclick="exportiereCSV()" style="width: auto; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
+            📥 Als Excel/CSV exportieren
+        </button>
+    </div>
     <div class="table-container">
         <table id="historyTable">
             <thead>
