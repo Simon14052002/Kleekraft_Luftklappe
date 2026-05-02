@@ -2,14 +2,15 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => console.log("Service Worker registriert!"));
 }
 
-// 1. FIREBASE INITIALISIEREN (Füge HIER deine eigenen Daten aus Schritt 1 ein!)
 const firebaseConfig = {
-    apiKey: "DEIN_API_KEY",
-    authDomain: "kleekraftluftklappe.firebaseapp.com",
-    projectId: "kleekraftluftklappe",
-    storageBucket: "kleekraftluftklappe.appspot.com",
-    messagingSenderId: "DEINE_ID",
-    appId: "DEINE_APP_ID"
+  apiKey: "AIzaSyBOYiIIf91pbu_AzA3Sukt-ErS9dOqI42o",
+  authDomain: "kleekraftluftklappe.firebaseapp.com",
+  databaseURL: "https://kleekraftluftklappe-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "kleekraftluftklappe",
+  storageBucket: "kleekraftluftklappe.firebasestorage.app",
+  messagingSenderId: "421408898351",
+  appId: "1:421408898351:web:3daef18da329b96dbd35da",
+  measurementId: "G-JXHGPR8XF3"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
