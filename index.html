@@ -18,12 +18,8 @@
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
         input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
-        .btn-calc { background-color: #0056b3; color: white; }
         .btn-save { background-color: #28a745; color: white; margin-bottom: 20px; }
-        
-        /* Neues Design für den Mülleimer-Button */
-        .btn-delete { background: none; border: none; padding: 5px; font-size: 1.2em; color: #dc3545; width: auto; margin: 0; display: inline-block; }
-        
+        .btn-delete { background: none; border: none; padding: 5px; font-size: 1.2em; color: #dc3545; width: auto; margin: 0; display: inline-block; cursor: pointer; }
         .result-box { background-color: #e9ecef; padding: 15px; border-radius: 6px; text-align: center; margin: 20px 0; font-size: 1.2em; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8em; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
@@ -36,27 +32,27 @@
 <div class="container">
     <h2>Luftklappen Optimierung</h2>
     
+    <!-- Durch "oninput" wird sofort gerechnet, wenn man tippt -->
     <div class="input-group">
         <label>Innen-Temperatur (°C)</label>
-        <input type="number" id="inT" value="29" step="0.1">
+        <input type="number" id="inT" step="0.1" oninput="berechneOptimum()">
     </div>
     <div class="input-group">
         <label>Innen-Feuchtigkeit (%)</label>
-        <input type="number" id="inF" value="55" step="1">
+        <input type="number" id="inF" step="1" oninput="berechneOptimum()">
     </div>
     <div class="input-group">
         <label>Außen-Temperatur (°C)</label>
-        <input type="number" id="outT" value="17" step="0.1">
+        <input type="number" id="outT" step="0.1" oninput="berechneOptimum()">
     </div>
     <div class="input-group">
         <label>Außen-Feuchtigkeit (%)</label>
-        <input type="number" id="outF" value="15" step="1">
+        <input type="number" id="outF" step="1" oninput="berechneOptimum()">
     </div>
 
-    <button class="btn-calc" onclick="berechneOptimum()">Optimum Berechnen</button>
-
+    <!-- Die Ergebnis-Box -->
     <div class="result-box" id="resultDisplay">
-        Optimal: Berechne...
+        Bitte alle Werte eintragen...
     </div>
 
     <div class="input-group">
@@ -82,7 +78,7 @@
                     <th>F_out</th>
                     <th>Opt.</th>
                     <th>Ist</th>
-                    <th><!-- Leere Spalte für das Müll-Icon --></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>

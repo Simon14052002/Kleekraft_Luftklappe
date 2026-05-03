@@ -2,25 +2,24 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => console.log("Service Worker registriert!"));
 }
 
+// FIREBASE INITIALISIEREN (HINWEIS: Füge hier wieder deine Keys ein!)
 const firebaseConfig = {
-  apiKey: "AIzaSyBOYiIIf91pbu_AzA3Sukt-ErS9dOqI42o",
-  authDomain: "kleekraftluftklappe.firebaseapp.com",
-  databaseURL: "https://kleekraftluftklappe-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "kleekraftluftklappe",
-  storageBucket: "kleekraftluftklappe.firebasestorage.app",
-  messagingSenderId: "421408898351",
-  appId: "1:421408898351:web:3daef18da329b96dbd35da",
-  measurementId: "G-JXHGPR8XF3"
+    apiKey: "DEIN_API_KEY",
+    authDomain: "kleekraftluftklappe.firebaseapp.com",
+    projectId: "kleekraftluftklappe",
+    storageBucket: "kleekraftluftklappe.appspot.com",
+    messagingSenderId: "DEINE_ID",
+    appId: "DEINE_APP_ID"
 };
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const db = firebase.firestore();
 
-// 2. OFFLINE MODUS AKTIVIEREN (Das ist der Trick für den Heizungskeller!)
 db.enablePersistence().catch(function(err) {
     console.error("Offline-Modus konnte nicht aktiviert werden:", err);
 });
 
-// --- DEINE BERECHNUNGSLOGIK BLEIBT GLEICH ---
 function func1(T, F) {
     return (5.018 + 0.32321 * T + 8.1847e-3 * Math.pow(T, 2) + 3.1243e-4 * Math.pow(T, 3)) * (1 - F);
 }
@@ -28,10 +27,23 @@ function func1(T, F) {
 let letztesErgebnis = null;
 
 function berechneOptimum() {
-    let inT = parseFloat(document.getElementById('inT').value);
-    let inF = parseFloat(document.getElementById('inF').value) / 100.0;
-    let outT = parseFloat(document.getElementById('outT').value);
-    let outF = parseFloat(document.getElementById('outF').value) / 100.0;
+    let inT_raw = document.getElementById('inT').value;
+    let inF_raw = document.getElementById('inF').value;
+    let outT_raw = document.getElementById('outT').value;
+    let outF_raw = document.getElementById('outF').value;
+
+    // Prüfen, ob alle 4 Felder ausgefüllt sind
+    if (inT_raw === "" || inF_raw === "" || outT_raw === "" || outF_raw === "") {
+        document.getElementById('resultDisplay').innerHTML = `Bitte alle 4 Werte eintragen...`;
+        letztesErgebnis = null;
+        return; // Bricht hier ab, rechnet noch nicht
+    }
+
+    // Wenn alle da sind, umwandeln und rechnen
+    let inT = parseFloat(inT_raw);
+    let inF = parseFloat(inF_raw) / 100.0;
+    let outT = parseFloat(outT_raw);
+    let outF = parseFloat(outF_raw) / 100.0;
 
     let max_val = -Infinity;
     let optimal_x = 0;
@@ -45,12 +57,11 @@ function berechneOptimum() {
 
     let optimalPercent = Math.round((1 - optimal_x) * 100);
     letztesErgebnis = optimalPercent;
-    document.getElementById('resultDisplay').innerHTML = `Optimale Außenluftklappe: <b>${optimalPercent}%</b>`;
+    document.getElementById('resultDisplay').innerHTML = `Optimale Außenluftklappe: <b style="color:#28a745; font-size:1.2em;">${optimalPercent}%</b>`;
 }
 
-// --- NEU: DATEN IN FIREBASE SPEICHERN ---
 function speichereDaten() {
-    if (letztesErgebnis === null) return alert("Bitte zuerst berechnen!");
+    if (letztesErgebnis === null) return alert("Bitte zuerst alle 4 Werte oben eintragen!");
     let actualVal = document.getElementById('actualVal').value;
     if (actualVal === "") return alert("Bitte trage den tatsächlichen Wert ein!");
 
@@ -61,27 +72,24 @@ function speichereDaten() {
         outF: document.getElementById('outF').value,
         opt: letztesErgebnis,
         ist: actualVal,
-        // Firebase Zeitstempel sorgt dafür, dass die Sortierung immer stimmt
         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
     };
 
-    // In die Cloud senden (oder lokal zwischenspeichern, falls offline)
     db.collection("historie").add(eintrag);
+    
+    // Nach dem Speichern nur den "Ist-Wert" leeren, falls man noch was korrigieren will
     document.getElementById('actualVal').value = ''; 
 }
 
-// --- NEU: ECHTZEIT-SYNCHRONISATION MIT DER CLOUD ---
 function starteDatenSync() {
-    // "onSnapshot" hört live zu. Wenn jemand anderes etwas speichert, aktualisiert sich die Tabelle sofort!
     db.collection("historie").orderBy("timestamp", "desc").onSnapshot((snapshot) => {
         let tbody = document.querySelector('#historyTable tbody');
         tbody.innerHTML = '';
 
         snapshot.forEach((doc) => {
             let row = doc.data();
-            let id = doc.id; // Die eindeutige ID des Dokuments aus der Datenbank
+            let id = doc.id; 
             
-            // Verhindern, dass leere Zeilen angezeigt werden, bevor der Zeitstempel vom Server kommt
             if (!row.timestamp) return; 
 
             let tr = document.createElement('tr');
@@ -99,59 +107,39 @@ function starteDatenSync() {
     });
 }
 
-// --- NEU: AUS DER CLOUD LÖSCHEN ---
 function loescheEintrag(id) {
     if (confirm("Diesen Eintrag wirklich löschen?")) {
         db.collection("historie").doc(id).delete();
     }
 }
 
-window.onload = () => {
-    starteDatenSync(); 
-    berechneOptimum();
-};
-
-// --- NEU: DATEN ALS CSV HERUNTERLADEN ---
 async function exportiereCSV() {
     try {
-        // 1. Alle Daten aus Firebase holen (sortiert nach Datum)
         const snapshot = await db.collection("historie").orderBy("timestamp", "desc").get();
-        
-        // 2. Die Kopfzeile der Excel-Tabelle erstellen (Semikolon für deutsches Excel)
         let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Opt. Klappe (%);Ist-Klappe (%)\n";
 
-        // 3. Jede Zeile aus der Datenbank durchgehen
         snapshot.forEach((doc) => {
             let row = doc.data();
-            
             let datumStr = "";
             let zeitStr = "";
             
-            // Zeitstempel in ein lesbares Format umwandeln (z.B. für Österreich 'de-AT')
             if (row.timestamp) {
                 let dateObj = row.timestamp.toDate();
-                datumStr = dateObj.toLocaleDateString('de-AT'); // z.B. 03.05.2026
-                zeitStr = dateObj.toLocaleTimeString('de-AT');  // z.B. 14:30:00
+                datumStr = dateObj.toLocaleDateString('de-AT'); 
+                zeitStr = dateObj.toLocaleTimeString('de-AT');  
             }
 
-            // Die Zeile zusammenbauen (Werte mit Semikolon trennen)
             csvContent += `${datumStr};${zeitStr};${row.inT};${row.inF};${row.outT};${row.outF};${row.opt};${row.ist}\n`;
         });
 
-        // 4. Einen unsichtbaren Download-Link erstellen und klicken
-        // UTF-8 BOM (\uFEFF) hinzufügen, damit Excel Umlaute und Sonderzeichen (wie °C) richtig anzeigt
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement("a");
         const url = URL.createObjectURL(blob);
         
         link.setAttribute("href", url);
-        link.setAttribute("download", "Luftklappen_Historie.csv"); // Name der Datei
+        link.setAttribute("download", "Luftklappen_Historie.csv");
         document.body.appendChild(link);
-        
-        // Download auslösen
         link.click();
-        
-        // Aufräumen
         document.body.removeChild(link);
 
     } catch (error) {
@@ -159,3 +147,19 @@ async function exportiereCSV() {
         alert("Fehler beim Erstellen der CSV-Datei.");
     }
 }
+
+// WIRD BEIM STARTEN DER APP AUSGEFÜHRT
+window.onload = () => {
+    // 1. Alle Felder hart leeren, wenn die App neu gestartet wird
+    document.getElementById('inT').value = "";
+    document.getElementById('inF').value = "";
+    document.getElementById('outT').value = "";
+    document.getElementById('outF').value = "";
+    document.getElementById('actualVal').value = "";
+
+    // 2. Datenbank-Sync starten
+    starteDatenSync(); 
+    
+    // 3. Info-Text "Bitte Werte eintragen" anzeigen lassen
+    berechneOptimum();
+};
