@@ -2,14 +2,14 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => console.log("Service Worker registriert!"));
 }
 
-// FIREBASE INITIALISIEREN (HINWEIS: Füge hier wieder deine Keys ein!)
+// FIREBASE INITIALISIEREN
 const firebaseConfig = {
-    apiKey: "DEIN_API_KEY",
+    apiKey: "DEIN_API_KEY", // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
     authDomain: "kleekraftluftklappe.firebaseapp.com",
     projectId: "kleekraftluftklappe",
     storageBucket: "kleekraftluftklappe.appspot.com",
-    messagingSenderId: "DEINE_ID",
-    appId: "DEINE_APP_ID"
+    messagingSenderId: "DEINE_ID", // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
+    appId: "DEINE_APP_ID" // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
 };
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -36,10 +36,9 @@ function berechneOptimum() {
     if (inT_raw === "" || inF_raw === "" || outT_raw === "" || outF_raw === "") {
         document.getElementById('resultDisplay').innerHTML = `Bitte alle 4 Werte eintragen...`;
         letztesErgebnis = null;
-        return; // Bricht hier ab, rechnet noch nicht
+        return; 
     }
 
-    // Wenn alle da sind, umwandeln und rechnen
     let inT = parseFloat(inT_raw);
     let inF = parseFloat(inF_raw) / 100.0;
     let outT = parseFloat(outT_raw);
@@ -76,8 +75,6 @@ function speichereDaten() {
     };
 
     db.collection("historie").add(eintrag);
-    
-    // Nach dem Speichern nur den "Ist-Wert" leeren, falls man noch was korrigieren will
     document.getElementById('actualVal').value = ''; 
 }
 
@@ -89,7 +86,6 @@ function starteDatenSync() {
         snapshot.forEach((doc) => {
             let row = doc.data();
             let id = doc.id; 
-            
             if (!row.timestamp) return; 
 
             let tr = document.createElement('tr');
@@ -128,7 +124,6 @@ async function exportiereCSV() {
                 datumStr = dateObj.toLocaleDateString('de-AT'); 
                 zeitStr = dateObj.toLocaleTimeString('de-AT');  
             }
-
             csvContent += `${datumStr};${zeitStr};${row.inT};${row.inF};${row.outT};${row.outF};${row.opt};${row.ist}\n`;
         });
 
@@ -148,18 +143,12 @@ async function exportiereCSV() {
     }
 }
 
-// WIRD BEIM STARTEN DER APP AUSGEFÜHRT
 window.onload = () => {
-    // 1. Alle Felder hart leeren, wenn die App neu gestartet wird
     document.getElementById('inT').value = "";
     document.getElementById('inF').value = "";
     document.getElementById('outT').value = "";
     document.getElementById('outF').value = "";
     document.getElementById('actualVal').value = "";
-
-    // 2. Datenbank-Sync starten
     starteDatenSync(); 
-    
-    // 3. Info-Text "Bitte Werte eintragen" anzeigen lassen
     berechneOptimum();
 };
