@@ -56,7 +56,7 @@ function berechneOptimum() {
     let optimalPercent = Math.round((1 - optimal_x) * 100);
     letztesErgebnis = optimalPercent;
     // Name der Klappe aktualisiert
-    document.getElementById('resultDisplay').innerHTML = `Optimale Dachluftklappe: <b style="color:#28a745; font-size:1.2em;">${optimalPercent}%</b>`;
+    document.getElementById('resultDisplay').innerHTML = `Optimale Außenluftklappe: <b style="color:#28a745; font-size:1.2em;">${optimalPercent}%</b>`;
 }
 
 function speichereDaten() {
@@ -123,7 +123,7 @@ async function exportiereCSV() {
     try {
         const snapshot = await db.collection("historie").orderBy("timestamp", "desc").get();
         // Kopfzeile aktualisiert
-        let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Entfeuchter;Luftquelle;Opt. Dachluftklappe (%);Ist-Dachluftklappe (%)\n";
+        let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Entfeuchter;Luftquelle;Opt. Außenluftklappe (%);Ist-Außenluftklappe (%)\n";
 
         snapshot.forEach((doc) => {
             let row = doc.data();
