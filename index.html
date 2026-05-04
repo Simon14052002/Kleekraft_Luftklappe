@@ -16,7 +16,7 @@
         h2 { text-align: center; color: #0056b3; margin-top: 0; }
         .input-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9em; }
-        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        input[type="number"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: background 0.3s; }
         .btn-save { background-color: #28a745; color: white; margin-bottom: 20px; }
         .btn-delete { background: none; border: none; padding: 5px; font-size: 1.2em; color: #dc3545; width: auto; margin: 0; display: inline-block; cursor: pointer; }
@@ -25,6 +25,11 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; vertical-align: middle; }
         th { background-color: #0056b3; color: white; }
         .table-container { overflow-x: auto; }
+        
+        /* Neues Design für Radio-Buttons */
+        .radio-group { display: flex; gap: 20px; align-items: center; padding: 5px 0; }
+        .radio-group label { display: inline; font-weight: normal; margin-bottom: 0; cursor: pointer; font-size: 16px; }
+        .radio-group input[type="radio"] { width: auto; transform: scale(1.3); margin-right: 5px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -32,7 +37,6 @@
 <div class="container">
     <h2>Luftklappen Optimierung</h2>
     
-    <!-- Durch "oninput" wird sofort gerechnet, wenn man tippt -->
     <div class="input-group">
         <label>Innen-Temperatur (°C)</label>
         <input type="number" id="inT" step="0.1" oninput="berechneOptimum()">
@@ -50,13 +54,30 @@
         <input type="number" id="outF" step="1" oninput="berechneOptimum()">
     </div>
 
-    <!-- Die Ergebnis-Box -->
+    <!-- NEU: Entfeuchter -->
+    <div class="input-group">
+        <label>Entfeuchter</label>
+        <div class="radio-group">
+            <input type="radio" id="entfEin" name="entfeuchter" value="Ein" checked> <label for="entfEin">Ein</label>
+            <input type="radio" id="entfAus" name="entfeuchter" value="Aus"> <label for="entfAus">Aus</label>
+        </div>
+    </div>
+
+    <!-- NEU: Luftquelle -->
+    <div class="input-group">
+        <label>4 Außenluftklappen auf:</label>
+        <div class="radio-group">
+            <input type="radio" id="luftDach" name="luftquelle" value="Dachluft" checked> <label for="luftDach">Dachluft</label>
+            <input type="radio" id="luftUm" name="luftquelle" value="Umluft"> <label for="luftUm">Umluft</label>
+        </div>
+    </div>
+
     <div class="result-box" id="resultDisplay">
         Bitte alle Werte eintragen...
     </div>
 
     <div class="input-group">
-        <label>Tatsächlich eingestellte Klappe (%)</label>
+        <label>Tatsächlich eingestellte Außenluftklappe (%)</label>
         <input type="number" id="actualVal" placeholder="z.B. 35">
     </div>
 
@@ -65,7 +86,7 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
         <h3 style="margin: 0;">Historie</h3>
         <button onclick="exportiereCSV()" style="width: auto; padding: 8px 12px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9em;">
-            📥 Als Excel/CSV exportieren
+            📥 Excel Export
         </button>
     </div>
     <div class="table-container">
@@ -76,6 +97,8 @@
                     <th>F_in</th>
                     <th>T_out</th>
                     <th>F_out</th>
+                    <th>Entf.</th>
+                    <th>Quelle</th>
                     <th>Opt.</th>
                     <th>Ist</th>
                     <th></th>

@@ -2,14 +2,14 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(() => console.log("Service Worker registriert!"));
 }
 
-// FIREBASE INITIALISIEREN
+// !!! HIER DEINE ECHTEN FIREBASE DATEN EINTRAGEN !!!
 const firebaseConfig = {
-    apiKey: "DEIN_API_KEY", // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
+    apiKey: "DEIN_API_KEY", 
     authDomain: "kleekraftluftklappe.firebaseapp.com",
     projectId: "kleekraftluftklappe",
     storageBucket: "kleekraftluftklappe.appspot.com",
-    messagingSenderId: "DEINE_ID", // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
-    appId: "DEINE_APP_ID" // <--- HIER DEINE ECHTEN WERTE EINTRAGEN
+    messagingSenderId: "DEINE_ID", 
+    appId: "DEINE_APP_ID" 
 };
 if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -32,7 +32,6 @@ function berechneOptimum() {
     let outT_raw = document.getElementById('outT').value;
     let outF_raw = document.getElementById('outF').value;
 
-    // Prüfen, ob alle 4 Felder ausgefüllt sind
     if (inT_raw === "" || inF_raw === "" || outT_raw === "" || outF_raw === "") {
         document.getElementById('resultDisplay').innerHTML = `Bitte alle 4 Werte eintragen...`;
         letztesErgebnis = null;
@@ -56,6 +55,7 @@ function berechneOptimum() {
 
     let optimalPercent = Math.round((1 - optimal_x) * 100);
     letztesErgebnis = optimalPercent;
+    // Name der Klappe aktualisiert
     document.getElementById('resultDisplay').innerHTML = `Optimale Außenluftklappe: <b style="color:#28a745; font-size:1.2em;">${optimalPercent}%</b>`;
 }
 
@@ -64,11 +64,17 @@ function speichereDaten() {
     let actualVal = document.getElementById('actualVal').value;
     if (actualVal === "") return alert("Bitte trage den tatsächlichen Wert ein!");
 
+    // Die neuen Radio-Buttons auslesen
+    let entfeuchterVal = document.querySelector('input[name="entfeuchter"]:checked').value;
+    let luftquelleVal = document.querySelector('input[name="luftquelle"]:checked').value;
+
     let eintrag = {
         inT: document.getElementById('inT').value,
         inF: document.getElementById('inF').value,
         outT: document.getElementById('outT').value,
         outF: document.getElementById('outF').value,
+        entfeuchter: entfeuchterVal,
+        luftquelle: luftquelleVal,
         opt: letztesErgebnis,
         ist: actualVal,
         timestamp: firebase.firestore.FieldValue.serverTimestamp() 
@@ -89,11 +95,15 @@ function starteDatenSync() {
             if (!row.timestamp) return; 
 
             let tr = document.createElement('tr');
+            // Die neuen Felder (entfeuchter und luftquelle) eingefügt. 
+            // Falls alte Einträge diese Felder nicht haben, steht dort "-"
             tr.innerHTML = `
                 <td>${row.inT}</td>
                 <td>${row.inF}</td>
                 <td>${row.outT}</td>
                 <td>${row.outF}</td>
+                <td>${row.entfeuchter || '-'}</td>
+                <td>${row.luftquelle || '-'}</td>
                 <td><b>${row.opt}</b></td>
                 <td>${row.ist}</td>
                 <td><button class="btn-delete" onclick="loescheEintrag('${id}')">🗑️</button></td>
@@ -112,7 +122,8 @@ function loescheEintrag(id) {
 async function exportiereCSV() {
     try {
         const snapshot = await db.collection("historie").orderBy("timestamp", "desc").get();
-        let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Opt. Klappe (%);Ist-Klappe (%)\n";
+        // Kopfzeile aktualisiert
+        let csvContent = "Datum;Uhrzeit;T_in (°C);F_in (%);T_out (°C);F_out (%);Entfeuchter;Luftquelle;Opt. Außenluftklappe (%);Ist-Außenluftklappe (%)\n";
 
         snapshot.forEach((doc) => {
             let row = doc.data();
@@ -124,7 +135,8 @@ async function exportiereCSV() {
                 datumStr = dateObj.toLocaleDateString('de-AT'); 
                 zeitStr = dateObj.toLocaleTimeString('de-AT');  
             }
-            csvContent += `${datumStr};${zeitStr};${row.inT};${row.inF};${row.outT};${row.outF};${row.opt};${row.ist}\n`;
+            // CSV-Zeile um die beiden Felder erweitert
+            csvContent += `${datumStr};${zeitStr};${row.inT};${row.inF};${row.outT};${row.outF};${row.entfeuchter || '-'};${row.luftquelle || '-'};${row.opt};${row.ist}\n`;
         });
 
         const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -144,11 +156,17 @@ async function exportiereCSV() {
 }
 
 window.onload = () => {
+    // Eingabefelder leeren
     document.getElementById('inT').value = "";
     document.getElementById('inF').value = "";
     document.getElementById('outT').value = "";
     document.getElementById('outF').value = "";
     document.getElementById('actualVal').value = "";
+    
+    // Radio Buttons auf Default setzen
+    document.getElementById('entfEin').checked = true;
+    document.getElementById('luftDach').checked = true;
+
     starteDatenSync(); 
     berechneOptimum();
 };
